@@ -1,5 +1,7 @@
 # GeoSite PHP Lookup
 
+![GeoSite PHP Lookup homepage](docs/homepage.jpg)
+
 一个无 Composer 依赖的 PHP 查询项目：输入域名、URL 或 IP，输出命中的 `geosite` / `geoip` 标签。
 
 默认优先读取 V2Ray `.dat` 数据库：

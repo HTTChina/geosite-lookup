@@ -1,0 +1,126 @@
+{
+  "version": 1,
+  "type": "geosite",
+  "updated_at": "2026-06-13",
+  "sets": [
+    {
+      "label": "geosite:cn",
+      "rules": {
+        "domain": [
+          "baidu.com",
+          "bilibili.com",
+          "qq.com",
+          "taobao.com",
+          "tmall.com",
+          "jd.com",
+          "weibo.com",
+          "zhihu.com"
+        ],
+        "suffix": [
+          "baidu.com",
+          "bdstatic.com",
+          "bilibili.com",
+          "hdslb.com",
+          "qq.com",
+          "gtimg.cn",
+          "taobao.com",
+          "alicdn.com",
+          "tmall.com",
+          "jd.com",
+          "360.cn",
+          "163.com",
+          "126.net",
+          "sina.com.cn"
+        ],
+        "keyword": [
+          "baidu",
+          "bilibili",
+          "alipay",
+          "taobao",
+          "tencent"
+        ]
+      }
+    },
+    {
+      "label": "geosite:google",
+      "rules": {
+        "domain": [
+          "google.com",
+          "youtube.com",
+          "gmail.com",
+          "googleapis.com",
+          "gstatic.com"
+        ],
+        "suffix": [
+          "google.com",
+          "googleapis.com",
+          "gstatic.com",
+          "googleusercontent.com",
+          "youtube.com",
+          "ytimg.com",
+          "ggpht.com",
+          "gmail.com"
+        ],
+        "keyword": [
+          "google",
+          "youtube",
+          "gmail"
+        ]
+      }
+    },
+    {
+      "label": "geosite:openai",
+      "rules": {
+        "domain": [
+          "openai.com",
+          "chat.openai.com",
+          "api.openai.com"
+        ],
+        "suffix": [
+          "openai.com",
+          "oaistatic.com",
+          "oaiusercontent.com",
+          "chatgpt.com"
+        ],
+        "keyword": [
+          "openai",
+          "chatgpt"
+        ]
+      }
+    },
+    {
+      "label": "geosite:github",
+      "rules": {
+        "domain": [
+          "github.com",
+          "github.io"
+        ],
+        "suffix": [
+          "github.com",
+          "github.io",
+          "githubusercontent.com",
+          "githubassets.com"
+        ],
+        "keyword": [
+          "github"
+        ]
+      }
+    },
+    {
+      "label": "geosite:cloudflare",
+      "rules": {
+        "domain": [
+          "cloudflare.com"
+        ],
+        "suffix": [
+          "cloudflare.com",
+          "cloudflareinsights.com",
+          "cloudflare-dns.com"
+        ],
+        "keyword": [
+          "cloudflare"
+        ]
+      }
+    }
+  ]
+}

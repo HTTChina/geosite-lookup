@@ -7,6 +7,29 @@ namespace GeoSitePhp;
 final class DatDatabase
 {
     /**
+     * @return array<string, mixed>|null
+     */
+    public static function findGeoSite(string $path, string $code)
+    {
+        $reader = self::readerFor($path);
+        $target = strtolower($code);
+
+        while (($tag = $reader->readTag()) !== null) {
+            if ($tag['field'] === 1 && $tag['wire'] === 2) {
+                $match = self::parseGeoSiteEntry($reader->readLengthDelimited(), $target);
+                if ($match !== null) {
+                    return $match;
+                }
+                continue;
+            }
+
+            $reader->skip($tag['wire']);
+        }
+
+        return null;
+    }
+
+    /**
      * @return array<int, array<string, mixed>>
      */
     public static function lookupGeoSite(string $path, string $domain): array
@@ -181,6 +204,46 @@ final class DatDatabase
         return [
             'label' => $label,
             'rules' => $matchedRules,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private static function parseGeoSiteEntry(string $data, string $target)
+    {
+        $reader = new ProtoReader($data);
+        $countryCode = '';
+        $rules = [];
+        $matcher = new DomainMatcher();
+
+        while (($tag = $reader->readTag()) !== null) {
+            if ($tag['field'] === 1 && $tag['wire'] === 2) {
+                $countryCode = strtolower($reader->readLengthDelimited());
+                continue;
+            }
+
+            if ($tag['field'] === 2 && $tag['wire'] === 2) {
+                $rule = self::parseDomain($reader->readLengthDelimited());
+                if ($rule['value'] !== '') {
+                    $rules[] = [
+                        'type' => $matcher->datTypeName($rule['type']),
+                        'value' => $rule['value'],
+                    ];
+                }
+                continue;
+            }
+
+            $reader->skip($tag['wire']);
+        }
+
+        if ($countryCode !== $target) {
+            return null;
+        }
+
+        return [
+            'label' => 'geosite:' . $countryCode,
+            'rules' => $rules,
         ];
     }
 

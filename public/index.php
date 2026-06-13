@@ -18,6 +18,7 @@ $copy = [
         'placeholder' => 'Enter a domain, URL, or IP, such as google.com / 8.8.8.8',
         'submit' => 'Lookup',
         'label_hits' => 'label matches',
+        'rules' => 'rules',
         'no_matches' => 'No matches in the dat database or text lists.',
         'dat_matches' => 'Dat Matches',
         'list_matches' => 'Text List Matches',
@@ -32,6 +33,7 @@ $copy = [
         'placeholder' => '输入域名、URL 或 IP，例如 google.com / 8.8.8.8',
         'submit' => '查询',
         'label_hits' => '个标签命中',
+        'rules' => '条规则',
         'no_matches' => '没有命中 dat 数据库或文本列表。',
         'dat_matches' => 'Dat 标签命中',
         'list_matches' => '文本列表命中',
@@ -85,6 +87,14 @@ if ($query !== '') {
             </form>
 
             <?php if ($result !== null): ?>
+                <?php
+                $summaryCount = count($result['matches']);
+                $summaryLabel = $copy['label_hits'];
+                if ($result['type'] === 'geosite' && isset($result['matches'][0]['rules']) && is_array($result['matches'][0]['rules'])) {
+                    $summaryCount = count($result['matches'][0]['rules']);
+                    $summaryLabel = $copy['rules'];
+                }
+                ?>
                 <section class="result">
                     <div class="result-head">
                         <div>
@@ -93,8 +103,8 @@ if ($query !== '') {
                             <h2><?= htmlspecialchars((string) $result['normalized'], ENT_QUOTES, 'UTF-8') ?></h2>
                         </div>
                         <span class="count">
-                            <?= count($result['matches']) ?>
-                            <?= htmlspecialchars($copy['label_hits'], ENT_QUOTES, 'UTF-8') ?>
+                            <?= $summaryCount ?>
+                            <?= htmlspecialchars($summaryLabel, ENT_QUOTES, 'UTF-8') ?>
                         </span>
                     </div>
 

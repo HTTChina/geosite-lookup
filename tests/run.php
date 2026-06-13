@@ -15,6 +15,7 @@ $cases = [
     ['8.8.8.8', 'ip', 'geoip:google'],
     ['1.1.1.1', 'ip', 'geoip:cloudflare'],
     ['192.168.1.1', 'ip', 'geoip:private'],
+    ['geosite:hetzner', 'geosite', 'geosite:hetzner'],
 ];
 
 $failures = [];

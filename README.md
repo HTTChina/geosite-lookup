@@ -29,6 +29,7 @@ http://127.0.0.1:8000
 php bin/lookup.php google.com
 php bin/lookup.php 8.8.8.8
 php bin/lookup.php https://chat.openai.com
+php bin/lookup.php geosite:hetzner
 ```
 
 ## 数据库
@@ -87,6 +88,7 @@ php bin/update-dat.php
 
 命中逻辑：
 
+- `geosite:<label>`: 显示对应 GeoSite 标签里的全部域名规则，例如 `geosite:hetzner`。
 - `domain`: 精确匹配域名。
 - `suffix`: 匹配当前域名或其子域名，例如 `maps.google.com` 命中 `google.com`。
 - `keyword`: 域名包含关键词即可命中。

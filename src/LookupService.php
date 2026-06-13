@@ -51,6 +51,22 @@ final class LookupService
             ];
         }
 
+        if ($this->isGeoSiteLabel($input)) {
+            $label = $this->normalizeGeoSiteLabel($input);
+            $match = $this->lookupGeoSiteLabel($label);
+            $matches = $match === null ? [] : [$match];
+
+            return [
+                'input' => $input,
+                'type' => 'geosite',
+                'normalized' => 'geosite:' . $label,
+                'source' => $this->usesDat ? 'dat' : 'json',
+                'versions' => $this->versions(),
+                'matches' => $matches,
+                'list_matches' => [],
+            ];
+        }
+
         if (Input::isIp($input)) {
             $matcher = new IpMatcher();
             $matches = $this->usesDat
@@ -96,5 +112,57 @@ final class LookupService
             'geoip' => $this->metadata['geoip'] ?? null,
             'lists' => $this->metadata['lists'] ?? [],
         ];
+    }
+
+    private function isGeoSiteLabel(string $input): bool
+    {
+        return strtolower(substr(trim($input), 0, 8)) === 'geosite:';
+    }
+
+    private function normalizeGeoSiteLabel(string $input): string
+    {
+        return strtolower(trim(substr(trim($input), 8)));
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function lookupGeoSiteLabel(string $label)
+    {
+        if ($label === '') {
+            return null;
+        }
+
+        if ($this->usesDat) {
+            return DatDatabase::findGeoSite((string) $this->geositeDat, $label);
+        }
+
+        foreach (($this->geosite['sets'] ?? []) as $set) {
+            if (!is_array($set) || strtolower((string) ($set['label'] ?? '')) !== 'geosite:' . $label) {
+                continue;
+            }
+
+            $rules = is_array($set['rules'] ?? null) ? $set['rules'] : [];
+            $matchedRules = [];
+
+            foreach (['domain', 'suffix', 'keyword'] as $type) {
+                $values = is_array($rules[$type] ?? null) ? $rules[$type] : [];
+                foreach ($values as $value) {
+                    if (is_string($value) && $value !== '') {
+                        $matchedRules[] = [
+                            'type' => $type,
+                            'value' => $value,
+                        ];
+                    }
+                }
+            }
+
+            return [
+                'label' => (string) $set['label'],
+                'rules' => $matchedRules,
+            ];
+        }
+
+        return null;
     }
 }

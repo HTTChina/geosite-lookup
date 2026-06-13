@@ -6,11 +6,13 @@ namespace GeoSitePhp;
 
 final class ProtoReader
 {
-    private int $position = 0;
-    private int $length;
+    private $data;
+    private $position = 0;
+    private $length;
 
-    public function __construct(private readonly string $data)
+    public function __construct(string $data)
     {
+        $this->data = $data;
         $this->length = strlen($data);
     }
 
@@ -22,7 +24,7 @@ final class ProtoReader
     /**
      * @return array{field: int, wire: int}|null
      */
-    public function readTag(): ?array
+    public function readTag()
     {
         if ($this->isDone()) {
             return null;
@@ -72,18 +74,27 @@ final class ProtoReader
         return $value;
     }
 
-    public function skip(int $wire): void
+    public function skip(int $wire)
     {
-        match ($wire) {
-            0 => $this->readVarint(),
-            1 => $this->skipBytes(8),
-            2 => $this->readLengthDelimited(),
-            5 => $this->skipBytes(4),
-            default => throw new \RuntimeException("Unsupported protobuf wire type: {$wire}"),
-        };
+        switch ($wire) {
+            case 0:
+                $this->readVarint();
+                return;
+            case 1:
+                $this->skipBytes(8);
+                return;
+            case 2:
+                $this->readLengthDelimited();
+                return;
+            case 5:
+                $this->skipBytes(4);
+                return;
+            default:
+                throw new \RuntimeException("Unsupported protobuf wire type: {$wire}");
+        }
     }
 
-    private function skipBytes(int $length): void
+    private function skipBytes(int $length)
     {
         if ($this->position + $length > $this->length) {
             throw new \RuntimeException('Unexpected end of protobuf field.');

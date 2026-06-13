@@ -86,7 +86,7 @@ final class IpMatcher
 
     private function ipInCidr(string $ip, string $cidr): bool
     {
-        [$network, $prefix] = array_pad(explode('/', $cidr, 2), 2, null);
+        list($network, $prefix) = array_pad(explode('/', $cidr, 2), 2, null);
         if ($network === null || $prefix === null || !ctype_digit($prefix)) {
             return false;
         }

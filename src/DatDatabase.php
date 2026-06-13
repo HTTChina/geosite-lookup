@@ -148,7 +148,7 @@ final class DatDatabase
     /**
      * @return array<string, mixed>|null
      */
-    private static function matchGeoSite(string $data, string $domain, DomainMatcher $matcher): ?array
+    private static function matchGeoSite(string $data, string $domain, DomainMatcher $matcher)
     {
         $reader = new ProtoReader($data);
         $label = '';
@@ -248,7 +248,7 @@ final class DatDatabase
     /**
      * @return array<string, mixed>|null
      */
-    private static function matchGeoIp(string $data, string $ipBytes, IpMatcher $matcher): ?array
+    private static function matchGeoIp(string $data, string $ipBytes, IpMatcher $matcher)
     {
         $reader = new ProtoReader($data);
         $label = '';

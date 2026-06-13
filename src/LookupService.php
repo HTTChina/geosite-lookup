@@ -6,13 +6,13 @@ namespace GeoSitePhp;
 
 final class LookupService
 {
-    private array $geosite = [];
-    private array $geoip = [];
-    private ?string $geositeDat = null;
-    private ?string $geoipDat = null;
-    private string $listDir;
-    private array $metadata;
-    private bool $usesDat;
+    private $geosite = [];
+    private $geoip = [];
+    private $geositeDat = null;
+    private $geoipDat = null;
+    private $listDir;
+    private $metadata;
+    private $usesDat;
 
     public function __construct(string $dataDir)
     {

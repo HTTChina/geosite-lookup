@@ -9,6 +9,8 @@
 - GeoIP: <https://github.com/Loyalsoldier/geoip/releases/latest/download/geoip.dat>
 - GeoSite: <https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat>
 
+兼容 PHP 7.0+ 和 PHP 8.x。
+
 ## 运行 Web 页面
 
 ```bash

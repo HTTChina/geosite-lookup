@@ -20,7 +20,7 @@ final class Input
     {
         $value = trim($value);
 
-        if (str_contains($value, '://')) {
+        if (strpos($value, '://') !== false) {
             $host = parse_url($value, PHP_URL_HOST);
             if (is_string($host) && $host !== '') {
                 $value = $host;
@@ -32,7 +32,12 @@ final class Input
         $value = strtolower($value);
 
         if (function_exists('idn_to_ascii')) {
-            $ascii = idn_to_ascii($value, IDNA_DEFAULT, INTL_IDNA_VARIANT_UTS46);
+            if (defined('INTL_IDNA_VARIANT_UTS46')) {
+                $ascii = idn_to_ascii($value, defined('IDNA_DEFAULT') ? IDNA_DEFAULT : 0, INTL_IDNA_VARIANT_UTS46);
+            } else {
+                $ascii = idn_to_ascii($value);
+            }
+
             if (is_string($ascii) && $ascii !== '') {
                 $value = strtolower($ascii);
             }

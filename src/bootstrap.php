@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-spl_autoload_register(static function (string $class): void {
+spl_autoload_register(static function (string $class) {
     $prefix = 'GeoSitePhp\\';
-    if (!str_starts_with($class, $prefix)) {
+    if (substr($class, 0, strlen($prefix)) !== $prefix) {
         return;
     }
 

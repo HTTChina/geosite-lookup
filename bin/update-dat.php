@@ -59,7 +59,9 @@ foreach ($releases as $key => $releaseConfig) {
         'asset_digest' => (string) ($asset['digest'] ?? ''),
         'asset_url' => $url,
         'assets' => array_values(array_map(
-            static fn (array $item): string => (string) ($item['name'] ?? ''),
+            static function (array $item): string {
+                return (string) ($item['name'] ?? '');
+            },
             is_array($release['assets'] ?? null) ? $release['assets'] : []
         )),
     ];
@@ -135,7 +137,7 @@ function findAsset(array $release, string $name): array
     exit(1);
 }
 
-function downloadAsset(string $url, string $path): void
+function downloadAsset(string $url, string $path)
 {
     echo "Downloading {$url}\n";
 

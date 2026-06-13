@@ -49,17 +49,17 @@ final class TextListMatcher
 
         $matches = [];
         $lineNumber = 0;
-        $isTldList = str_contains(basename($file), 'tld');
+        $isTldList = strpos(basename($file), 'tld') !== false;
 
         while (($line = fgets($handle)) !== false) {
             $lineNumber++;
             $line = trim($line);
 
-            if ($line === '' || str_starts_with($line, '#')) {
+            if ($line === '' || substr($line, 0, 1) === '#') {
                 continue;
             }
 
-            [$type, $value] = $this->parseLine($line, $isTldList);
+            list($type, $value) = $this->parseLine($line, $isTldList);
             if ($this->matchesRule($domain, $type, $value)) {
                 $matches[] = [
                     'type' => $type,
@@ -79,8 +79,8 @@ final class TextListMatcher
      */
     private function parseLine(string $line, bool $isTldList): array
     {
-        if (str_contains($line, ':')) {
-            [$type, $value] = explode(':', $line, 2);
+        if (strpos($line, ':') !== false) {
+            list($type, $value) = explode(':', $line, 2);
             $type = strtolower(trim($type));
             $value = strtolower(trim($value));
 
@@ -98,19 +98,27 @@ final class TextListMatcher
             return false;
         }
 
-        return match ($type) {
-            'full' => $domain === $value,
-            'domain' => $domain === $value || str_ends_with($domain, '.' . $value),
-            'keyword' => str_contains($domain, $value),
-            'regexp' => $this->matchesRegex($domain, $value),
-            'tld' => $this->matchesTld($domain, $value),
-            default => false,
-        };
+        switch ($type) {
+            case 'full':
+                return $domain === $value;
+            case 'domain':
+                return $domain === $value || $this->endsWith($domain, '.' . $value);
+            case 'keyword':
+                return strpos($domain, $value) !== false;
+            case 'regexp':
+                return $this->matchesRegex($domain, $value);
+            case 'tld':
+                return $this->matchesTld($domain, $value);
+            default:
+                return false;
+        }
     }
 
     private function matchesRegex(string $domain, string $value): bool
     {
-        set_error_handler(static fn (): bool => true);
+        set_error_handler(static function () {
+            return true;
+        });
         try {
             return preg_match('/' . str_replace('/', '\\/', $value) . '/i', $domain) === 1;
         } finally {
@@ -124,5 +132,14 @@ final class TextListMatcher
         $tld = end($labels);
 
         return is_string($tld) && $tld === $value;
+    }
+
+    private function endsWith(string $value, string $suffix): bool
+    {
+        if ($suffix === '') {
+            return true;
+        }
+
+        return substr($value, -strlen($suffix)) === $suffix;
     }
 }

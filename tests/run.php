@@ -19,9 +19,12 @@ $cases = [
 
 $failures = [];
 
-foreach ($cases as [$input, $type, $expectedLabel]) {
+foreach ($cases as $case) {
+    list($input, $type, $expectedLabel) = $case;
     $result = $service->lookup($input);
-    $labels = array_map(static fn (array $match): string => (string) $match['label'], $result['matches']);
+    $labels = array_map(static function (array $match): string {
+        return (string) $match['label'];
+    }, $result['matches']);
 
     if ($result['type'] !== $type || !in_array($expectedLabel, $labels, true)) {
         $failures[] = [

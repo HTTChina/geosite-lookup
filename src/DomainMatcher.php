@@ -6,10 +6,10 @@ namespace GeoSitePhp;
 
 final class DomainMatcher
 {
-    private const TYPE_PLAIN = 0;
-    private const TYPE_REGEX = 1;
-    private const TYPE_DOMAIN = 2;
-    private const TYPE_FULL = 3;
+    const TYPE_PLAIN = 0;
+    const TYPE_REGEX = 1;
+    const TYPE_DOMAIN = 2;
+    const TYPE_FULL = 3;
 
     /**
      * @param array<string, mixed> $database
@@ -74,13 +74,18 @@ final class DomainMatcher
 
     public function matchesDatRule(string $domain, int $type, string $rule): bool
     {
-        return match ($type) {
-            self::TYPE_PLAIN => $rule !== '' && str_contains($domain, $rule),
-            self::TYPE_REGEX => $this->matchesRegex($domain, $rule),
-            self::TYPE_DOMAIN => $domain === $rule || str_ends_with($domain, '.' . $rule),
-            self::TYPE_FULL => $domain === $rule,
-            default => false,
-        };
+        switch ($type) {
+            case self::TYPE_PLAIN:
+                return $rule !== '' && strpos($domain, $rule) !== false;
+            case self::TYPE_REGEX:
+                return $this->matchesRegex($domain, $rule);
+            case self::TYPE_DOMAIN:
+                return $domain === $rule || $this->endsWith($domain, '.' . $rule);
+            case self::TYPE_FULL:
+                return $domain === $rule;
+            default:
+                return false;
+        }
     }
 
     private function matchesRegex(string $domain, string $rule): bool
@@ -89,7 +94,9 @@ final class DomainMatcher
             return false;
         }
 
-        set_error_handler(static fn (): bool => true);
+        set_error_handler(static function () {
+            return true;
+        });
         try {
             return preg_match('/' . str_replace('/', '\\/', $rule) . '/i', $domain) === 1;
         } finally {
@@ -99,13 +106,18 @@ final class DomainMatcher
 
     public function datTypeName(int $type): string
     {
-        return match ($type) {
-            self::TYPE_PLAIN => 'plain',
-            self::TYPE_REGEX => 'regex',
-            self::TYPE_DOMAIN => 'domain',
-            self::TYPE_FULL => 'full',
-            default => 'unknown',
-        };
+        switch ($type) {
+            case self::TYPE_PLAIN:
+                return 'plain';
+            case self::TYPE_REGEX:
+                return 'regex';
+            case self::TYPE_DOMAIN:
+                return 'domain';
+            case self::TYPE_FULL:
+                return 'full';
+            default:
+                return 'unknown';
+        }
     }
 
     /**
@@ -124,14 +136,14 @@ final class DomainMatcher
 
         foreach ($this->strings($rules['suffix'] ?? []) as $rule) {
             $rule = strtolower(ltrim($rule, '.'));
-            if ($domain === $rule || str_ends_with($domain, '.' . $rule)) {
+            if ($domain === $rule || $this->endsWith($domain, '.' . $rule)) {
                 $matched[] = ['type' => 'suffix', 'value' => $rule];
             }
         }
 
         foreach ($this->strings($rules['keyword'] ?? []) as $rule) {
             $rule = strtolower($rule);
-            if ($rule !== '' && str_contains($domain, $rule)) {
+            if ($rule !== '' && strpos($domain, $rule) !== false) {
                 $matched[] = ['type' => 'keyword', 'value' => $rule];
             }
         }
@@ -143,12 +155,23 @@ final class DomainMatcher
      * @param mixed $values
      * @return string[]
      */
-    private function strings(mixed $values): array
+    private function strings($values): array
     {
         if (!is_array($values)) {
             return [];
         }
 
-        return array_values(array_filter($values, static fn (mixed $value): bool => is_string($value) && $value !== ''));
+        return array_values(array_filter($values, static function ($value): bool {
+            return is_string($value) && $value !== '';
+        }));
+    }
+
+    private function endsWith(string $value, string $suffix): bool
+    {
+        if ($suffix === '') {
+            return true;
+        }
+
+        return substr($value, -strlen($suffix)) === $suffix;
     }
 }

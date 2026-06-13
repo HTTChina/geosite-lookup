@@ -95,3 +95,7 @@ php bin/update-dat.php
 ```bash
 php tests/run.php
 ```
+
+## 规则来源
+
+- GeoIP 增强版: [Loyalsoldier/geoip](https://github.com/Loyalsoldier/geoip/)

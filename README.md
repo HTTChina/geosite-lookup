@@ -1,5 +1,7 @@
 # GeoSite PHP Lookup
 
+Demo site: [https://www.ysui.com](https://www.ysui.com)
+
 ![GeoSite PHP Lookup homepage](docs/homepage.jpg)
 
 GeoSite PHP Lookup is a lightweight PHP web and CLI tool for inspecting GeoSite and GeoIP rule matches. Enter a domain, URL, IP address, or GeoSite label and the app shows which rule sets match it.

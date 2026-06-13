@@ -2,28 +2,64 @@
 
 ![GeoSite PHP Lookup homepage](docs/homepage.jpg)
 
-一个无 Composer 依赖的 PHP 查询项目：输入域名、URL 或 IP，输出命中的 `geosite` / `geoip` 标签。
+GeoSite PHP Lookup is a lightweight PHP web and CLI tool for inspecting GeoSite and GeoIP rule matches. Enter a domain, URL, IP address, or GeoSite label and the app shows which rule sets match it.
 
-默认优先读取 V2Ray `.dat` 数据库：
+It uses V2Ray/Xray-compatible `.dat` databases by default and can also inspect selected text rule lists from the same release.
 
-- GeoIP: <https://github.com/Loyalsoldier/geoip/releases/latest/download/geoip.dat>
-- GeoSite: <https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat>
+## Features
 
-兼容 PHP 7.0+ 和 PHP 8.x。
+- Lookup domains and URLs against `geosite.dat`.
+- Lookup IPv4 and IPv6 addresses against `geoip.dat`.
+- Lookup a full GeoSite rule set by label, such as `geosite:hetzner`.
+- Show matched text-list rules from `apple-cn.txt`, `china-list.txt`, `direct-list.txt`, `direct-tld-list.txt`, `gfw.txt`, and `google-cn.txt`.
+- Display local database release versions, publish times, asset URLs, sizes, and SHA-256 digests from `metadata.json`.
+- Bilingual web UI with English as the default and Chinese available via `?lang=zh`.
+- No Composer dependency required.
+- Compatible with PHP 7.0+ and PHP 8.x.
 
-## 运行 Web 页面
+## System Requirements
+
+- PHP 7.0 or newer. PHP 8.x is also supported.
+- Required PHP functions/extensions:
+  - `json`
+  - `filter`
+  - `pcre`
+  - `inet_pton()` / `inet_ntop()`
+- Optional PHP extension:
+  - `intl`, used only for IDN domain normalization when available.
+- Network access is required only when running `php bin/update-dat.php`.
+- A web server that can serve `public/index.php`, such as Nginx, Apache, Caddy, or PHP's built-in development server.
+
+For production deployment, point the web root to:
+
+```text
+public/
+```
+
+## Quick Start
+
+Run the local web UI:
 
 ```bash
 php -S 127.0.0.1:8000 -t public
 ```
 
-然后打开：
+Open:
 
 ```text
 http://127.0.0.1:8000
 ```
 
-## 命令行查询
+Example URLs:
+
+```text
+http://127.0.0.1:8000/?q=kraken.com
+http://127.0.0.1:8000/?q=8.8.8.8
+http://127.0.0.1:8000/?q=geosite:hetzner
+http://127.0.0.1:8000/?q=kraken.com&lang=zh
+```
+
+## CLI Usage
 
 ```bash
 php bin/lookup.php google.com
@@ -32,30 +68,72 @@ php bin/lookup.php https://chat.openai.com
 php bin/lookup.php geosite:hetzner
 ```
 
-## 数据库
+CLI output is JSON and includes the normalized input, source type, database version metadata, `.dat` matches, and text-list matches when available.
 
-真实 `.dat` 数据放在：
+## Supported Query Types
 
-- `data/source/geoip.dat`
-- `data/source/geosite.dat`
+### Domain
 
-重新下载：
+Input:
 
-```bash
-mkdir -p data/source
-curl -L -o data/source/geoip.dat https://github.com/Loyalsoldier/geoip/releases/latest/download/geoip.dat
-curl -L -o data/source/geosite.dat https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat
+```text
+kraken.com
 ```
 
-也可以运行：
+The app checks the normalized domain against `geosite.dat`. A domain may match multiple GeoSite labels, for example:
 
-```bash
-php bin/update-dat.php
+- `geosite:geolocation-!cn`
+- `geosite:category-cryptocurrency`
+- `geosite:gfw`
+- `geosite:kraken`
+
+It also checks downloaded text lists and reports the list file, rule type, rule value, and line number.
+
+### URL
+
+Input:
+
+```text
+https://chat.openai.com/
 ```
 
-下载脚本还会生成 `data/source/metadata.json`，记录本地 `geoip.dat` / `geosite.dat` 对应的 GitHub release tag、发布时间、sha256 digest 和同版本资产列表。查询结果里的 `versions` 字段以及 Web 页面上的版本徽标都来自这个文件。
+The app extracts the host, normalizes it, and performs the same lookup as a domain query.
 
-脚本还会下载这些文本列表到 `data/source/lists/`：
+### IP Address
+
+Input:
+
+```text
+8.8.8.8
+```
+
+The app checks the IP against `geoip.dat` CIDR ranges. IPv4 and IPv6 are supported.
+
+An IP can match multiple labels, such as provider-specific and country-level labels:
+
+- `geoip:google`
+- `geoip:us`
+
+### GeoSite Label
+
+Input:
+
+```text
+geosite:hetzner
+```
+
+The app returns every rule stored under that GeoSite label. This is useful when you want to inspect all domains covered by a provider, service, or category.
+
+Supported rule types include:
+
+- `domain`
+- `full`
+- `plain`
+- `regex`
+
+### Text Rule Lists
+
+Domain and URL queries also scan these downloaded text lists:
 
 - `apple-cn.txt`
 - `china-list.txt`
@@ -64,42 +142,69 @@ php bin/update-dat.php
 - `gfw.txt`
 - `google-cn.txt`
 
-域名查询会额外返回 `list_matches`，用于显示命中的文本列表、规则类型和行号。IP 查询仍以 `geoip.dat` 为准。
+Text-list matches are returned separately as `list_matches` so they do not get mixed with GeoSite labels.
 
-`v2ray-rules-dat` release 里那些 `apple-cn.txt`、`china-list.txt`、`direct-list.txt`、`gfw.txt`、`google-cn.txt` 等是同一批规则导出的文本列表，方便给 Clash、Surge、dnsmasq 或其他规则格式使用；`geosite.dat` 是 V2Ray/Xray 使用的二进制 geosite 数据库，`geoip.dat` 是二进制 geoip 数据库。
+## Database Files
 
-如果 `.dat` 文件不存在，项目会回退到示例 JSON 规则：
+Primary `.dat` files:
 
-- `data/geosite.json`: 域名规则，支持 `domain`、`suffix`、`keyword` 三类规则。
-- `data/geoip.json`: IP CIDR 规则，支持 IPv4 和 IPv6。
+- `data/source/geoip.dat`
+- `data/source/geosite.dat`
 
-规则示例：
+Text list files:
 
-```json
-{
-  "label": "geosite:google",
-  "rules": {
-    "domain": ["google.com"],
-    "suffix": ["googleapis.com"],
-    "keyword": ["google"]
-  }
-}
+- `data/source/lists/apple-cn.txt`
+- `data/source/lists/china-list.txt`
+- `data/source/lists/direct-list.txt`
+- `data/source/lists/direct-tld-list.txt`
+- `data/source/lists/gfw.txt`
+- `data/source/lists/google-cn.txt`
+
+Release metadata:
+
+- `data/source/metadata.json`
+
+If the `.dat` files are missing, the app falls back to the small sample JSON databases:
+
+- `data/geosite.json`
+- `data/geoip.json`
+
+The sample JSON files are intended only as a fallback and development reference.
+
+## Updating Databases
+
+Run:
+
+```bash
+php bin/update-dat.php
 ```
 
-命中逻辑：
+The update script fetches the latest GitHub releases, downloads the required assets, and writes `data/source/metadata.json`.
 
-- `geosite:<label>`: 显示对应 GeoSite 标签里的全部域名规则，例如 `geosite:hetzner`。
-- `domain`: 精确匹配域名。
-- `suffix`: 匹配当前域名或其子域名，例如 `maps.google.com` 命中 `google.com`。
-- `keyword`: 域名包含关键词即可命中。
-- `cidr`: IP 落入 CIDR 段即可命中。
+The script downloads:
 
-## 测试
+- `geoip.dat` from `Loyalsoldier/geoip`
+- `geosite.dat` from `Loyalsoldier/v2ray-rules-dat`
+- selected text rule lists from `Loyalsoldier/v2ray-rules-dat`
+
+Database updates are not automatic during normal page visits. Visiting the web UI only reads local files. To keep data fresh, run `php bin/update-dat.php` manually or schedule it with cron/systemd.
+
+## Rule Matching
+
+- `domain`: matches the exact domain or any subdomain.
+- `full`: matches only the exact domain.
+- `plain` / `keyword`: matches when the domain contains the value.
+- `regex` / `regexp`: matches using a regular expression.
+- `tld`: matches the final domain label, used by `direct-tld-list.txt`.
+- `cidr`: matches when an IP address falls within a CIDR range.
+
+## Data Sources
+
+- GeoIP enhanced edition: [Loyalsoldier/geoip](https://github.com/Loyalsoldier/geoip/)
+- GeoSite and text rule lists: [Loyalsoldier/v2ray-rules-dat](https://github.com/Loyalsoldier/v2ray-rules-dat/)
+
+## Tests
 
 ```bash
 php tests/run.php
 ```
-
-## 规则来源
-
-- GeoIP 增强版: [Loyalsoldier/geoip](https://github.com/Loyalsoldier/geoip/)
